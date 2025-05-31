@@ -3,8 +3,9 @@ use leptos::prelude::*;
 #[component]
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
-    let (move, set_move) = signal(10)
-    
+        
+    let double_count = move || count.get() * 2;
+
     view! {
         <button 
             on:click=move |_| *set_count.write() += 1
@@ -19,11 +20,20 @@ fn App() -> impl IntoView {
         </p>
         <p>
             "Double count: " 
-            {move || count.get() * 2}
+            {double_count}
         </p>
+        <progress
+            max="50"
+            value=count 
+        />
+        <br />
         <button
-            style="position: absolute"
-            style:left=move || format("{}px", count.get() + 100)
+            on:click=move |_| *set_count.write() += 10 
+            style="position: relative;"
+            style:left=move || format!("{}px", count.get() + 100)
+            style:background-color=move || format!("rgb({}, {}, 100)", count.get(), 100)
+            style:max-width="400px"
+            style=("--columns", move || count.get().to_string())
         >
             "Click to move"
         </button>
@@ -32,5 +42,5 @@ fn App() -> impl IntoView {
 
 fn main() {
     console_error_panic_hook::set_once();
-    leptos::mount::mount_to_body(|| view! { <App /> })
+    leptos::mount::mount_to_body(App)
 }
