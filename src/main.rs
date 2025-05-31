@@ -6,6 +6,8 @@ fn App() -> impl IntoView {
         
     let double_count = move || count.get() * 2;
 
+    let random_html = "<p>This is some random HTML that will be injected.</p>";
+
     view! {
         <button 
             on:click=move |_| *set_count.write() += 1
@@ -37,6 +39,7 @@ fn App() -> impl IntoView {
         >
             "Click to move"
         </button>
+        <div inner_html=random_html />
     }
 }
 
