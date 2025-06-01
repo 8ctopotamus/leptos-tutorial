@@ -1,12 +1,22 @@
 use leptos::prelude::*;
 
 #[component]
+fn ProgressBar(
+    progress: ReadSignal<i32>,
+    #[prop(optional)]
+    max: u16
+) -> impl IntoView {
+    view! {
+        <progress
+            max=max
+            value=progress
+        />
+    }
+}
+
+#[component]
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
-        
-    let double_count = move || count.get() * 2;
-
-    let random_html = "<p>This is some random HTML that will be injected.</p>";
 
     view! {
         <button 
@@ -16,30 +26,7 @@ fn App() -> impl IntoView {
         >
             "Click me:" {count}
         </button>
-        <p>
-            "Frozen count: " 
-            {count.get()}
-        </p>
-        <p>
-            "Double count: " 
-            {double_count}
-        </p>
-        <progress
-            max="50"
-            value=count 
-        />
-        <br />
-        <button
-            on:click=move |_| *set_count.write() += 10 
-            style="position: relative;"
-            style:left=move || format!("{}px", count.get() + 100)
-            style:background-color=move || format!("rgb({}, {}, 100)", count.get(), 100)
-            style:max-width="400px"
-            style=("--columns", move || count.get().to_string())
-        >
-            "Click to move"
-        </button>
-        <div inner_html=random_html />
+        <ProgressBar progress=count />        
     }
 }
 
