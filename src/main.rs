@@ -1,34 +1,37 @@
 use leptos::prelude::*;
 
-/// Shows progress toward a goal
-#[component]
-fn ProgressBar(
-    /// How much progress should be displayed
-    #[prop(into)]
-    progress: Signal<i32>,
-    /// The maximum value of the progress bar
-    #[prop(default = 100)]
-    max: u16
-) -> impl IntoView {
-    view! {
-        <progress
-            max=max
-            value=progress
-        />
-    }
-}
 
 #[component]
 fn App() -> impl IntoView {
-    let (count, set_count) = signal(0);
-    let double_count = move || count.get() * 2;
+    let values = vec![0, 1, 2];
 
+    let length = 5;
+    let counters = (1..=length).map(|idx| RwSignal::new(idx));
+    let counter_buttons = counters.map(|count| {
+        view! {
+            <li>
+                <button on:click=move |_| *count.write() += 1>
+                    {count}
+                </button>
+            </li>
+        }
+    })
+    .collect_view();
+    
     view! {
-        <button on:click=move |_| *set_count.write() += 1>
-            "Click me:" {count}
-        </button>
-        <ProgressBar progress=count />        
-        <ProgressBar progress=Signal::derive(double_count) />
+        <p>{values.clone()}</p>
+        <ul>
+            {values.clone().into_iter()
+                .map(|n| view! { <li>{n}</li> })
+                .collect::<Vec<_>>()}
+        </ul>
+        // or using the .collect_view() helper
+        <ul>
+            {values.clone().into_iter()
+                .map(|n| view! { <li>{n}</li> })
+                .collect_view()}
+        </ul>
+        <ul>{counter_buttons}</ul>
     }
 }
 
