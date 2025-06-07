@@ -1,9 +1,13 @@
 use leptos::prelude::*;
 
+/// Shows progress toward a goal
 #[component]
 fn ProgressBar(
-    progress: ReadSignal<i32>,
-    #[prop(optional)]
+    /// How much progress should be displayed
+    #[prop(into)]
+    progress: Signal<i32>,
+    /// The maximum value of the progress bar
+    #[prop(default = 100)]
     max: u16
 ) -> impl IntoView {
     view! {
@@ -17,16 +21,14 @@ fn ProgressBar(
 #[component]
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
+    let double_count = move || count.get() * 2;
 
     view! {
-        <button 
-            on:click=move |_| *set_count.write() += 1
-            class:red=move || count.get() % 2 == 0
-            class=(["font-bold", "rounded"], move || count.get() % 2 == 0)
-        >
+        <button on:click=move |_| *set_count.write() += 1>
             "Click me:" {count}
         </button>
         <ProgressBar progress=count />        
+        <ProgressBar progress=Signal::derive(double_count) />
     }
 }
 
