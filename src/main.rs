@@ -36,7 +36,7 @@ fn App() -> impl IntoView {
         </button>
         <For
             each=move || data.get()
-            key=|state| {state.key.clone(), state.value.clone()}
+            key=|state| (state.key.clone(), state.value.clone())
             let(child)
         >
            <p>{child.value}</p>        
