@@ -1,37 +1,46 @@
 use leptos::prelude::*;
 
+#[derive(Debug, Clone)]
+struct DatabaseEntry {
+    key: String,
+    value: i32
+}
 
 #[component]
 fn App() -> impl IntoView {
-    let values = vec![0, 1, 2];
+    let (data, set_data) = signal(vec![
+        DatabaseEntry {
+            key: "foo".to_string(),
+            value: 10,
+        },
+        DatabaseEntry {
+            key: "bar".to_string(),
+            value: 20,
+        },
+        DatabaseEntry {
+            key: "baz".to_string(),
+            value: 15,
+        },
+    ]);
 
-    let length = 5;
-    let counters = (1..=length).map(|idx| RwSignal::new(idx));
-    let counter_buttons = counters.map(|count| {
-        view! {
-            <li>
-                <button on:click=move |_| *count.write() += 1>
-                    {count}
-                </button>
-            </li>
-        }
-    })
-    .collect_view();
-    
     view! {
-        <p>{values.clone()}</p>
-        <ul>
-            {values.clone().into_iter()
-                .map(|n| view! { <li>{n}</li> })
-                .collect::<Vec<_>>()}
-        </ul>
-        // or using the .collect_view() helper
-        <ul>
-            {values.clone().into_iter()
-                .map(|n| view! { <li>{n}</li> })
-                .collect_view()}
-        </ul>
-        <ul>{counter_buttons}</ul>
+        <button on:click=move |_| {
+            set_data.update(|data| {
+                for row in data {
+                    row.value *= 2;
+                }
+            });
+            leptos::logging::log!("{:?}", data.get());
+        }>
+            "Update values"
+        </button>
+        <For
+            each=move || data.get()
+            key=|state| {state.key.clone(), state.value.clone()}
+            let(child)
+        >
+           <p>{child.value}</p>        
+        </For>
     }
 }
 
