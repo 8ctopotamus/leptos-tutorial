@@ -1,65 +1,39 @@
 use leptos::prelude::*;
+use leptos::html;
+use leptos::ev::SubmitEvent;
 
 #[component]
 fn App() -> impl IntoView {
-    let (name, set_name) = signal("".to_string());
-    let email = RwSignal::new("".to_string());
-    let favorite_color = RwSignal::new("red".to_string());
-    let spam_me = RwSignal::new(true);
+    let (name, set_name) = signal("Uncontrolled".to_string());
+
+    let input_element: NodeRef<html::Input> = NodeRef::new();
+
+    let on_submit = move |e: SubmitEvent| {
+        e.prevent_default();
+        // extract the value from the input
+        let value = input_element
+            .get()
+            // event handlers can only fire after the view
+            // is mounted to the DOM, so the `NodeRef` will be `Some`
+            .expect("<input> should be mounted")
+            // `leptos::HtmlElement<html::Input>` implements `Deref`
+            // to a `web_sys::HtmlInputElement`.
+            // this means we can call`HtmlInputElement::value()`
+            // to get the current value of the input
+            .value();
+        set_name.set(value);
+    };
 
     view! {
-        <input 
-            bind:value=(name, set_name)
-            type="text"
-        />
-        <input
-            bind:value=email
-            type="email"
-        />
-        <label>
-            "Please send me lots of spam email."
-            <input 
-                bind:checked=spam_me
-                type="checkbox" 
+        <form on:submit=on_submit>
+            <input
+                value=name
+                node_ref=input_element
+                type="text"
             />
-        </label>
-        <fieldset>
-            <legend>"Favorite color"</legend>
-            <label>
-                "Red"
-                <input 
-                    name="color"
-                    value="red"
-                    bind:group=favorite_color
-                    type="radio"
-                />
-            </label>
-            <label>
-                "Green"
-                <input 
-                    name="color"
-                    value="green"
-                    bind:group=favorite_color
-                    type="radio"
-                />
-            </label>
-            <label>
-                "Blue"
-                <input 
-                    name="color"
-                    value="blue"
-                    bind:group=favorite_color
-                    type="radio"
-                />
-            </label>
-        </fieldset>
-
-        <p>"Your favorite color is " {favorite_color} "."</p>
+            <input type="submit" value="Submit" />
+        </form>       
         <p>"Name is: " {name}</p>
-        <p>"Email is: " {email}</p>
-        <Show when=move || spam_me.get()>
-            <p>"You'll receive cool bonus content!"</p>
-        </Show>        
     }
 }
 
