@@ -1,39 +1,39 @@
 use leptos::prelude::*;
-use leptos::html;
-use leptos::ev::SubmitEvent;
 
 #[component]
 fn App() -> impl IntoView {
-    let (name, set_name) = signal("Uncontrolled".to_string());
+    let (some_textarea_value, set_some_textarea_value) = signal("".to_string());
 
-    let input_element: NodeRef<html::Input> = NodeRef::new();
-
-    let on_submit = move |e: SubmitEvent| {
-        e.prevent_default();
-        // extract the value from the input
-        let value = input_element
-            .get()
-            // event handlers can only fire after the view
-            // is mounted to the DOM, so the `NodeRef` will be `Some`
-            .expect("<input> should be mounted")
-            // `leptos::HtmlElement<html::Input>` implements `Deref`
-            // to a `web_sys::HtmlInputElement`.
-            // this means we can call`HtmlInputElement::value()`
-            // to get the current value of the input
-            .value();
-        set_name.set(value);
-    };
-
+    let (select_value, set_select_value) = signal(0i32);
+    
     view! {
-        <form on:submit=on_submit>
-            <input
-                value=name
-                node_ref=input_element
-                type="text"
-            />
-            <input type="submit" value="Submit" />
-        </form>       
-        <p>"Name is: " {name}</p>
+        <textarea
+            prop:value=move || some_textarea_value.get()
+            on:input:target=move |e| set_some_textarea_value.set(e.target().value())
+        >
+            {some_textarea_value}
+        </textarea>
+        <p><strong>"Message: "</strong> {some_textarea_value}</p>
+        <select
+            prop:value=select_value
+            on:change:target=move |e| {
+                set_select_value.set(e.target().value().parse().unwrap());
+            } 
+        >
+            <option value="0">"0"</option>
+            <option value="1">"1"</option>
+            <option value="2">"2"</option>
+        </select>
+        <button on:click=move |_| set_select_value.update(|n| {
+            if *n == 2 {
+                *n = 0;
+            } else {
+                *n += 1;
+            }
+        })>
+            "Next option"
+        </button>
+        <p><strong>"Select value: "</strong> {select_value}</p>
     }
 }
 
