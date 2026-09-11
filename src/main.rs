@@ -3,42 +3,48 @@ use leptos::prelude::*;
 #[derive(Debug, Clone)]
 struct DatabaseEntry {
     key: String,
-    value: RwSignal<i32>
+    value: i32
 }
 
 #[component]
 fn App() -> impl IntoView {
-    let (data, _set_data) = signal(vec![
+    let (data, set_data) = signal(vec![
         DatabaseEntry {
             key: "foo".to_string(),
-            value: RwSignal::new(10),
+            value: 10,
         },
         DatabaseEntry {
             key: "bar".to_string(),
-            value: RwSignal::new(20),
+            value: 20,
         },
         DatabaseEntry {
             key: "baz".to_string(),
-            value: RwSignal::new(15),
+            value: 15,
         },
     ]);
 
     view! {
         <button on:click=move |_| {
-            for row in &*data.read() {
-                row.value.update(|value| *value *= 2);
-            }
-            leptos::logging::log!("{:?}", data.get());
+            set_data.update(|items| {
+                for item in items.iter_mut() {
+                    item.value *= 2;
+                }
+            });
         }>
             "Update values"
         </button>
-        <For
+        <ForEnumerate
             each=move || data.get()
             key=|state| state.key.clone()
-            let(child)
-        >
-           <p>{child.value}</p>        
-        </For>
+            children=move |index, _| {
+                let value = Memo::new(move |_| {
+                    data.with(|data| data.get(index.get()).map(|d| d.value).unwrap_or(0))
+                });
+                view! {
+                    <p>{value}</p>
+                }
+            }
+        />
     }
 }
 
