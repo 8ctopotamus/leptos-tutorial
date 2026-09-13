@@ -2,17 +2,27 @@ use leptos::prelude::*;
 
 #[component]
 fn App() -> impl IntoView {
-    let (value, set_value) = signal(0);
+    let (value, set_value) = signal(1);
     let is_odd = move || value.get() % 2 != 0;
+
+    // using Option
+    let message = move || {
+        if is_odd() {
+            Some("Ding ding ding")
+        } else {
+            None
+        }
+    };
 
     view! {
         <p>
-            {move || if is_odd() {
+           "inline if: " {move || if is_odd() {
                 "odd"
             } else {
                 "even"
             }}
-        </p>
+        </p>    
+        <p>"Using Option: " {message}</p>
     }
 }
 
