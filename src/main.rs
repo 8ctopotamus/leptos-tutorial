@@ -27,6 +27,8 @@ fn App() -> impl IntoView {
         }
     };
 
+
+
     view! {
         <p>
            "inline if: " {move || if is_odd() {
@@ -38,6 +40,14 @@ fn App() -> impl IntoView {
         <p>"Using Option: " {message}</p>
         <p>"Using Option shorter syntax: " {message_2}</p>
         <p>"Using match: " {match_message}</p>
+        // Show only re-renders when the condition result has changed
+        <Show
+            when=move || { value.get() > 5 }
+            fallback=|| view! { "Some <Small /> component"  }
+        >
+            "Some <Big /> component"
+        </Show>
+
     }
 }
 
