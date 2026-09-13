@@ -13,6 +13,19 @@ fn App() -> impl IntoView {
             None
         }
     };
+    
+    // shorter Option syntax
+    let message_2 = move || is_odd().then(|| "Bing bing bing");
+
+    // match statement
+    let match_message = move || {
+        match value.get() {
+            0 => "Zero",
+            1 => "One",
+            n if is_odd() => "Odd",
+            _ => "Even"
+        }
+    };
 
     view! {
         <p>
@@ -23,6 +36,8 @@ fn App() -> impl IntoView {
             }}
         </p>    
         <p>"Using Option: " {message}</p>
+        <p>"Using Option shorter syntax: " {message_2}</p>
+        <p>"Using match: " {match_message}</p>
     }
 }
 
