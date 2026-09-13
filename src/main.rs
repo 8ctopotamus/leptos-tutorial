@@ -5,6 +5,7 @@ fn NumericInput() -> impl IntoView {
     let (value, set_value) = signal(Ok(0));
 
     view! {
+        <h1>"Error Handling"</h1>
         <label>
             "Type an integer (or not!)"
             <input 
@@ -15,9 +16,20 @@ fn NumericInput() -> impl IntoView {
                 type="number"
             />
         </label>
-        // value will show up blank in the DOM if an error is thrown. 
-        // (try typing numbers vs strings)
-        <p>"You entered: " <strong>{value}</strong></p>
+        <ErrorBoundary fallback=|errors| view! {
+            <div class="error">
+                <p>"Not a number! Errors: "</p>
+                <ul>
+                    {move || errors.get()
+                        .into_iter()
+                        .map(|(_, e)| view! { <li>{e.to_string()}</li> } ) 
+                        .collect::<Vec<_>>()
+                    }
+                </ul>
+            </div>
+        }>
+            <p>"You entered: " <strong>{value}</strong></p>
+        </ErrorBoundary>
     }
 }
 
