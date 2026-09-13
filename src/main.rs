@@ -1,62 +1,30 @@
 use leptos::prelude::*;
 
 #[component]
-fn App() -> impl IntoView {
-    let (value, _set_value) = signal(1);
-    let is_odd = move || value.get() % 2 != 0;
-
-    // using Option
-    let message = move || {
-        if is_odd() {
-            Some("Ding ding ding")
-        } else {
-            None
-        }
-    };
-    
-    // shorter Option syntax
-    let message_2 = move || is_odd().then(|| "Bing bing bing");
-
-    // match statement
-    let match_message = move || {
-        match value.get() {
-            0 => "Zero",
-            1 => "One",
-            _n if is_odd() => "Odd",
-            _ => "Even"
-        }
-    };
+fn NumericInput() -> impl IntoView {
+    let (value, set_value) = signal(Ok(0));
 
     view! {
-        <p>
-           "inline if: " {move || if is_odd() {
-                "odd"
-            } else {
-                "even"
-            }}
-        </p>    
-        <p>"Using Option: " {message}</p>
-        <p>"Using Option shorter syntax: " {message_2}</p>
-        <p>"Using match: " {match_message}</p>
-        // Show only re-renders when the condition result has changed
-        <Show
-            when=move || { value.get() > 5 }
-            fallback=|| view! { "Some <Small /> component"  }
-        >
-            "Some <Big /> component"
-        </Show>
-        // if you need to return different html elements from view!
-        // use enum `Either`, `EitherOf3`, `EitherOf4`, etc
-        // OR use `.into_any()` to convert multiple types into one typed-erased `AnyView` 
-        {move || match is_odd() {
-            true if value.get() == 1 => {
-                view! { <pre>"One"</pre> }.into_any()
-            },
-            false if value.get() == 2 => {
-                view! { <p>"Two"</p> }.into_any()
-            },
-            _ => view! { <textarea>{value.get()}</textarea> }.into_any()
-        }}
+        <label>
+            "Type an integer (or not!)"
+            <input 
+                on:input:target=move |ev| {
+                    // true to parse value into a i32
+                    set_value.set(ev.target().value().parse::<i32>());
+                } 
+                type="number"
+            />
+        </label>
+        // value will show up blank in the DOM if an error is thrown. 
+        // (try typing numbers vs strings)
+        <p>"You entered: " <strong>{value}</strong></p>
+    }
+}
+
+#[component]
+fn App() -> impl IntoView {
+    view! {  
+        <NumericInput />
     }
 }
 
