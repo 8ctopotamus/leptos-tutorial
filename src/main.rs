@@ -2,7 +2,7 @@ use leptos::prelude::*;
 
 #[component]
 fn App() -> impl IntoView {
-    let (value, set_value) = signal(1);
+    let (value, _set_value) = signal(1);
     let is_odd = move || value.get() % 2 != 0;
 
     // using Option
@@ -22,12 +22,10 @@ fn App() -> impl IntoView {
         match value.get() {
             0 => "Zero",
             1 => "One",
-            n if is_odd() => "Odd",
+            _n if is_odd() => "Odd",
             _ => "Even"
         }
     };
-
-
 
     view! {
         <p>
@@ -47,7 +45,18 @@ fn App() -> impl IntoView {
         >
             "Some <Big /> component"
         </Show>
-
+        // if you need to return different html elements from view!
+        // use enum `Either`, `EitherOf3`, `EitherOf4`, etc
+        // OR use `.into_any()` to convert multiple types into one typed-erased `AnyView` 
+        {move || match is_odd() {
+            true if value.get() == 1 => {
+                view! { <pre>"One"</pre> }.into_any()
+            },
+            false if value.get() == 2 => {
+                view! { <p>"Two"</p> }.into_any()
+            },
+            _ => view! { <textarea>{value.get()}</textarea> }.into_any()
+        }}
     }
 }
 
