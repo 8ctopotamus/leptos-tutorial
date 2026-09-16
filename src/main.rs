@@ -20,12 +20,34 @@ where
 }
 
 #[component]
+pub fn WrapsChildren(children: ChildrenFragment) -> impl IntoView {
+    // children() returns a `Fragment`, which has a `nodes` field that contains a Vec<View>
+    // this means we can iterate over the children to create something new!
+    let children = children()
+        .nodes
+        .into_iter()
+        .map(|child| view! { <li>{child}</li> })
+        .collect::<Vec<_>>();
+    view! {
+        <h1><code>"<WrapsChildren />"</code></h1>
+        <ul>{children}</ul>
+    }
+}
+
+#[component]
 fn App() -> impl IntoView {
     view! {  
         <TakesChildren render_prop=|| view! { <p>"Hi, there!"</p> }>
             "Some text"
             <span>"A span"</span>
         </TakesChildren>
+
+        <WrapsChildren>
+            "A"
+            "B"
+            "C"
+            "D"
+        </WrapsChildren>
     }
 }
 
