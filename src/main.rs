@@ -1,42 +1,31 @@
 use leptos::prelude::*;
 
 #[component]
-fn NumericInput() -> impl IntoView {
-    let (value, set_value) = signal(Ok(0));
-
+pub fn TakesChildren<F, IV>(
+    render_prop: F,
+    children: Children
+) -> impl IntoView
+where
+    F: Fn() -> IV,
+    IV: IntoView,
+{
     view! {
-        <h1>"Error Handling"</h1>
-        <label>
-            "Type an integer (or not!)"
-            <input 
-                on:input:target=move |ev| {
-                    // true to parse value into a i32
-                    set_value.set(ev.target().value().parse::<i32>());
-                } 
-                type="number"
-            />
-        </label>
-        <ErrorBoundary fallback=|errors| view! {
-            <div class="error">
-                <p>"Not a number! Errors: "</p>
-                <ul>
-                    {move || errors.get()
-                        .into_iter()
-                        .map(|(_, e)| view! { <li>{e.to_string()}</li> } ) 
-                        .collect::<Vec<_>>()
-                    }
-                </ul>
-            </div>
-        }>
-            <p>"You entered: " <strong>{value}</strong></p>
-        </ErrorBoundary>
+        <h1><code>"<TakesChildren />"</code></h1>
+        <h2>"Render Prop:"</h2>
+        {render_prop()}
+        <hr />
+        <h2>"Children"</h2>
+        {children()}
     }
 }
 
 #[component]
 fn App() -> impl IntoView {
     view! {  
-        <NumericInput />
+        <TakesChildren render_prop=|| view! { <p>"Hi, there!"</p> }>
+            "Some text"
+            <span>"A span"</span>
+        </TakesChildren>
     }
 }
 
