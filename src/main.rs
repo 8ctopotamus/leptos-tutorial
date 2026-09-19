@@ -1,30 +1,44 @@
 use leptos::prelude::*;
 
+
 #[component]
 fn App() -> impl IntoView {
-    let (names, set_names) = signal(Vec::new());
+    // making signals depend on each other - good options:
 
-    // this code is inefficient because we are cloning the whole Vec<string>
-    // just to check .is_empty(), and then throwing away the clone
-    // let _ = if names.get().is_empty() {
-        // this .set is also inefficient because we are replacing the value with a whole new Vec<String>...
-        // set_names.set(vec!["Alice".to_string()]);
-    // };
+    // 1) B is a function of A. Create a signal for A and a derived signal or memo for B.
+    // A
+    let (count, _set_count) = signal(1);
+    // B is a function of A
+    let _derived_signal_double_count = move || count.get() * 2;
+    // B is a function of A
+    let _memoized_double_count = Memo::new(move |_| count.get() * 2);
 
-    // instead we can:
+    // 2) C is a function of A and some other thing B. Create signals for A and B and a derived signal or memo for C
+    // A
+    let (first_name, _set_first_name) = signal("Bridget".to_string());
+    // B
+    let (last_name, _set_last_name) = signal("Jones".to_string());
+    // C is a function of A and B
+    let _full_name = move || format!("{} {}", &*first_name.read(), &*last_name.read());
 
-    // use names by reference to avoid the clone using `.read()`
-    if names.read().is_empty() {
-        // mutate the original Vec<String> in place using `.write()`
-        set_names.write().push("Alice".to_string());
-    }
+    // 3) A and B are independent signals, but sometimes updated at the same time. When you make the call to update A, make a separate call to update B.
+    // A
+    let (age, set_age) = signal(32);
+    // B
+    let (favorite_number, set_favorite_number) = signal(42);
+    // use this to handle a click on a `Clear` button    
+    let clear_handler = move |_| {
+        // update both A and B
+        set_age.set(0);
+        set_favorite_number.set(0);
+    };
 
-    view!  {
-        <ul>
-            {names.get().into_iter()
-                .map(|n| view! { <li>{n}</li> })
-                .collect::<Vec<_>>()}
-        </ul>
+    view!  { 
+        <p>{age.get()}</p>
+        <p>{favorite_number.get()}</p>
+        <button on:click=clear_handler>
+            "Clear"
+        </button>
     }
 }
 
