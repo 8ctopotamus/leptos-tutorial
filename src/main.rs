@@ -1,54 +1,27 @@
 use leptos::prelude::*;
-
-#[component]
-pub fn TakesChildren<F, IV>(
-    render_prop: F,
-    children: Children
-) -> impl IntoView
-where
-    F: Fn() -> IV,
-    IV: IntoView,
-{
-    view! {
-        <h1><code>"<TakesChildren />"</code></h1>
-        <h2>"Render Prop:"</h2>
-        {render_prop()}
-        <hr />
-        <h2>"Children"</h2>
-        {children()}
-    }
-}
-
-#[component]
-pub fn WrapsChildren(children: ChildrenFragment) -> impl IntoView {
-    // children() returns a `Fragment`, which has a `nodes` field that contains a Vec<View>
-    // this means we can iterate over the children to create something new!
-    let children = children()
-        .nodes
-        .into_iter()
-        .map(|child| view! { <li>{child}</li> })
-        .collect::<Vec<_>>();
-    view! {
-        <h1><code>"<WrapsChildren />"</code></h1>
-        <ul>{children}</ul>
-    }
-}
+use leptos::html::p;
 
 #[component]
 fn App() -> impl IntoView {
-    view! {  
-        <TakesChildren render_prop=|| view! { <p>"Hi, there!"</p> }>
-            "Some text"
-            <span>"A span"</span>
-        </TakesChildren>
+    let (value, _set_value) = signal(0);
 
-        <WrapsChildren>
-            "A"
-            "B"
-            "C"
-            "D"
-        </WrapsChildren>
-    }
+    // use component props builder
+    // Show(
+    //     ShowProps::builder()
+    //         .when(move || value.get() > 5)
+    //         .fallback(|| p().child("I will appear if `value` is 5 or lower"))
+    //         .children(ToChildren::to_children(|| {
+    //             p().child("I will appear if `value is above 5")
+    //         }))
+    //         .build(),
+    // )
+
+    // or directly build the props struct
+    Show(ShowProps {
+        when: move || value.get() > 5,
+        fallback: (|| p().child("I will appear if `value` is 5 or lower")).into(),
+        children: ToChildren::to_children(|| p().child("I will appear if `value is above 5")),
+    })
 }
 
 fn main() {
