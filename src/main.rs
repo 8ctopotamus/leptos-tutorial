@@ -34,8 +34,8 @@ fn App() -> impl IntoView {
     };
 
     view!  { 
-        <p>{age.get()}</p>
-        <p>{favorite_number.get()}</p>
+        <p>{move || age.get()}</p>
+        <p>{move || favorite_number.get()}</p>
         <button on:click=clear_handler>
             "Clear"
         </button>
