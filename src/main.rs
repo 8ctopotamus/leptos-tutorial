@@ -1,63 +1,64 @@
-use leptos::prelude::*;
+use leptos::{html::Input, prelude::*};
 use gloo_timers::future::TimeoutFuture;
+use uuid::Uuid;
 
-async fn important_api_call(id: usize) -> String {
-    TimeoutFuture::new(2_000).await;
-    match id {
-        0 => "Alice",
-        1 => "Bob",
-        2 => "Carol",
-        _ => "User not found"
-    }.to_string()
+async fn add_todo(text: &str) -> Uuid {
+    _ = text;
+    // fake a one-second delay
+    // SendWrapper allows us to use this !Send browser API; don't worry about it
+    send_wrapper::SendWrapper::new(TimeoutFuture::new(1_000)).await;
+    // pretend this is a post ID or something
+    Uuid::new_v4()
 }
 
 #[component]
 fn App() -> impl IntoView {
-    let (tab, set_tab) = signal(0);
-    let (pending, set_pending) = signal(false);
+    // an action takes an async function with single argument
+    // it can be a simple type, a struct, or ()
+    let add_todo = Action::new(|input: &String| {
+        // the input is a reference, but we need the Future to own it
+        // this is important: we need to clone and move into the Future
+        // so it has a 'static lifetime
+        let input = input.to_owned();
+        async move { add_todo(&input).await }
+    });
 
-    // this will reload every time `tab` changes
-    let user_data = LocalResource::new(move || important_api_call(tab.get()));
-    
+    // actions provide a bunch of synchronous, reactive variables
+    // that tell us different things about the state of the action
+    let submitted = add_todo.input();
+    let pending = add_todo.pending();
+    let todo_id = add_todo.value();
+
+    let input_ref = NodeRef::<Input>::new();
+
     view! {
-        <div>
-            <button
-                on:click=move |_| set_tab.set(0)
-                class:selected=move || tab.get() == 0 
-            >
-                "Tab A"
-            </button>
-            <button
-                on:click=move |_| set_tab.set(1)
-                class:selected=move || tab.get() == 1 
-            >
-                "Tab B"
-            </button>
-            <button
-                on:click=move |_| set_tab.set(2)
-                class:selected=move || tab.get() == 2 
-            >
-                "Tab C"
-            </button>
-        </div>
+        <form on:submit=move |ev| {
+            ev.prevent_default();
+            let input = input_ref.get().expect("input to exist");
+            add_todo.dispatch(input.value());
+        }>
+            <label>
+                "What do you need to do?"
+                <input 
+                    node_ref=input_ref
+                    type="text" 
+                />
+            </label>
+            <button type="submit">"Add Todo"</button>
+        </form>
+        <p>{move || pending.get().then_some("Loading...")}</p>
         <p>
-            {move || if pending.get() {
-                "Hang on..."
-            } else {
-                "Ready."
-            }}
+            "Submitted: "
+            <code>{move || format!("{:#?}", submitted.get())}</code>
         </p>
-        <Transition
-            fallback=move || view! { <p>"Loading initial data..."</p> }
-            // the fallback will show initially
-            // on subsequent reloads, the current child will
-            // continue showing
-            set_pending
-        >
-            <p>
-                {move || user_data.read().as_deref().map(ToString::to_string)}
-            </p>
-        </Transition>
+        <p>
+            "Pending: "
+            <code>{move || format!("{:#?}", pending.get())}</code>
+        </p>
+        <p>
+            "Todo ID: "
+            <code>{move || format!("{:#?}", todo_id.get())}</code>
+        </p>
     }
 }
 
