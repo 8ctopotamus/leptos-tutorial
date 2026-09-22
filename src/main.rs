@@ -1,45 +1,63 @@
 use leptos::prelude::*;
 use gloo_timers::future::TimeoutFuture;
 
-async fn important_api_call(name: String) -> String {
+async fn important_api_call(id: usize) -> String {
     TimeoutFuture::new(2_000).await;
-    name.to_ascii_uppercase()
+    match id {
+        0 => "Alice",
+        1 => "Bob",
+        2 => "Carol",
+        _ => "User not found"
+    }.to_string()
 }
 
 #[component]
 fn App() -> impl IntoView {
-    let (name, set_name) = signal("Josh".to_string());
+    let (tab, set_tab) = signal(0);
+    let (pending, set_pending) = signal(false);
 
-    let async_data = LocalResource::new(move || important_api_call(name.get()));
-
+    // this will reload every time `tab` changes
+    let user_data = LocalResource::new(move || important_api_call(tab.get()));
+    
     view! {
-        <input 
-            on:change:target=move |ev| set_name.set(ev.target().value())
-            prop:value=name 
-        />
-        <p><code>"name:"</code> {name}</p>
-        <Suspense
-            // the fallback will show whenever a resource
-            // read "under" the suspense is loading
-            fallback=move || view! { <p>"Loading..."</p> }
+        <div>
+            <button
+                on:click=move |_| set_tab.set(0)
+                class:selected=move || tab.get() == 0 
+            >
+                "Tab A"
+            </button>
+            <button
+                on:click=move |_| set_tab.set(1)
+                class:selected=move || tab.get() == 1 
+            >
+                "Tab B"
+            </button>
+            <button
+                on:click=move |_| set_tab.set(2)
+                class:selected=move || tab.get() == 2 
+            >
+                "Tab C"
+            </button>
+        </div>
+        <p>
+            {move || if pending.get() {
+                "Hang on..."
+            } else {
+                "Ready."
+            }}
+        </p>
+        <Transition
+            fallback=move || view! { <p>"Loading initial data..."</p> }
+            // the fallback will show initially
+            // on subsequent reloads, the current child will
+            // continue showing
+            set_pending
         >
             <p>
-                "Your shouting name is "
-                {move || Suspend::new(async move {
-                    async_data.await
-                })}
+                {move || user_data.read().as_deref().map(ToString::to_string)}
             </p>
-        </Suspense>
-        <Suspense
-            // the fallback will show whenever a resource
-            // read "under" the suspense is loading
-            fallback=move || view! { <p>"Loading..."</p> }
-        >
-            <p>
-                "Which should be the same as... "
-                {move || async_data.get().as_deref().map(ToString::to_string)}
-            </p>
-        </Suspense>
+        </Transition>
     }
 }
 
