@@ -1,49 +1,45 @@
 use leptos::prelude::*;
 use gloo_timers::future::TimeoutFuture;
 
-async fn load_data(value: i32) -> i32 {
+async fn important_api_call(name: String) -> String {
     TimeoutFuture::new(2_000).await;
-    value * 10
+    name.to_ascii_uppercase()
 }
 
 #[component]
 fn App() -> impl IntoView {
-    let (count, set_count) = signal(0);
+    let (name, set_name) = signal("Josh".to_string());
 
-    // a resource will only load once if it doesn't read any reactive data
-    let stable = LocalResource::new(|| load_data(1));
-
-    // tracks count and calls load_data whenever it changes
-    let async_data = LocalResource::new(move || load_data(count.get()));
-
-    // we can access the resource values with .get()
-    // this will reactively return None before the Future has resolved
-    // and update to Some(T) when it has resolved
-    let async_result = move || {
-        async_data
-            .get()
-            .map(|value| format!("Server returned {value:?}"))
-            .unwrap_or_else(|| "Loading".into())
-    };
+    let async_data = LocalResource::new(move || important_api_call(name.get()));
 
     view! {
-        <button
-            on:click=move |_| *set_count.write() += 1
+        <input 
+            on:change:target=move |ev| set_name.set(ev.target().value())
+            prop:value=name 
+        />
+        <p><code>"name:"</code> {name}</p>
+        <Suspense
+            // the fallback will show whenever a resource
+            // read "under" the suspense is loading
+            fallback=move || view! { <p>"Loading..."</p> }
         >
-            "Click me"
-        </button>
-        <p>
-            <code>"stable"</code>": " {move || stable.get()}
-        </p>
-        <p>
-            <code>"count"</code>": " {count}
-        </p>
-        <p>
-            <code>"async_value"</code>": "
-            {async_result}
-            <br/>
-        </p>
-
+            <p>
+                "Your shouting name is "
+                {move || Suspend::new(async move {
+                    async_data.await
+                })}
+            </p>
+        </Suspense>
+        <Suspense
+            // the fallback will show whenever a resource
+            // read "under" the suspense is loading
+            fallback=move || view! { <p>"Loading..."</p> }
+        >
+            <p>
+                "Which should be the same as... "
+                {move || async_data.get().as_deref().map(ToString::to_string)}
+            </p>
+        </Suspense>
     }
 }
 
