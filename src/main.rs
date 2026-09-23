@@ -1,32 +1,39 @@
 use leptos::prelude::*;
+use reactive_stores::Store;
+
+#[derive(Clone, Debug, Default, Store)]
+struct GlobalState {
+    count: i32,
+    name: String,
+}
 
 #[component]
 fn App() -> impl IntoView {
-    let (count, _set_count) = signal::<u32>(0);
-
-    provide_context(count);
+    provide_context(Store::new(GlobalState::default()));
 
     view! {
-        <FancyMath />
+        <GlobalStateCounter />
     }
 }
 
 #[component]
-fn FancyMath() -> impl IntoView {
-    let count = use_context::<ReadSignal<u32>>()
-        .expect("there to be a `count` signal provided");
-    let is_even = move || count.get() & 1 == 0;
+fn GlobalStateCounter() -> impl IntoView {
+    let state = expect_context::<Store<GlobalState>>();
+
+    // this gives us reactive caccess to the `count` field only
+    let count = state.count();
 
     view! {
         <div>
-            "The number " 
-            <strong>{count}</strong>
-            {move || if is_even() {
-                " is"
-            } else {
-                " is not"
-            }}
-            " even."
+            <button
+                on:click=move |_| {
+                    *count.write() += 1;
+                }
+            >
+                "Increment Global Count"
+            </button>
+            <br />
+            <span>"Count is: " {move || count.get()}</span>
         </div>
     }
 }
