@@ -1,40 +1,45 @@
 use leptos::prelude::*;
-use reactive_stores::Store;
-
-#[derive(Clone, Debug, Default, Store)]
-struct GlobalState {
-    count: i32,
-    name: String,
-}
+use leptos_router::components::{Router, Route, Routes};
+use leptos_router::path;
 
 #[component]
-fn App() -> impl IntoView {
-    provide_context(Store::new(GlobalState::default()));
-
+fn Home() -> impl IntoView {
     view! {
-        <GlobalStateCounter />
+        <h1>Home</h1>
     }
 }
 
 #[component]
-fn GlobalStateCounter() -> impl IntoView {
-    let state = expect_context::<Store<GlobalState>>();
-
-    // this gives us reactive caccess to the `count` field only
-    let count = state.count();
-
+fn Users() -> impl IntoView {
     view! {
-        <div>
-            <button
-                on:click=move |_| {
-                    *count.write() += 1;
-                }
-            >
-                "Increment Global Count"
-            </button>
-            <br />
-            <span>"Count is: " {move || count.get()}</span>
-        </div>
+        <h1>Users</h1>
+    }
+}
+
+#[component]
+fn UserProfile() -> impl IntoView {
+    view! {
+        <h1>User Profile</h1>
+    }
+}
+
+#[component]
+fn App() -> impl IntoView {
+    view! {
+        <Router>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/users">Users</a>
+            </nav>
+            <main>
+                <Routes fallback=|| "Not found fallback.">
+                    <Route path=path!("/") view=Home />
+                    <Route path=path!("/users") view=Users />
+                    <Route path=path!("/users/:id") view=UserProfile />
+                    <Route path=path!("/*any") view=|| view! { <h1>Not found</h1> } />
+                </Routes>
+            </main>
+        </Router>
     }
 }
 
