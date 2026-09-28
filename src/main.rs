@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_router::components::{Router, Route, Routes};
+use leptos_router::components::{Router, Route, Routes, ParentRoute, Outlet};
 use leptos_router::path;
 
 #[component]
@@ -13,6 +13,7 @@ fn Home() -> impl IntoView {
 fn Users() -> impl IntoView {
     view! {
         <h1>Users</h1>
+        <Outlet />
     }
 }
 
@@ -20,6 +21,13 @@ fn Users() -> impl IntoView {
 fn UserProfile() -> impl IntoView {
     view! {
         <h1>User Profile</h1>
+    }
+}
+
+#[component]
+fn NoUser() -> impl IntoView {
+    view! {
+        <h1>No User</h1>
     }
 }
 
@@ -34,8 +42,10 @@ fn App() -> impl IntoView {
             <main>
                 <Routes fallback=|| "Not found fallback.">
                     <Route path=path!("/") view=Home />
-                    <Route path=path!("/users") view=Users />
-                    <Route path=path!("/users/:id") view=UserProfile />
+                    <ParentRoute path=path!("/users") view=Users>
+                        <Route path=path!(":id") view=UserProfile />
+                        <Route path=path!("") view=NoUser />
+                    </ParentRoute>
                     <Route path=path!("/*any") view=|| view! { <h1>Not found</h1> } />
                 </Routes>
             </main>
