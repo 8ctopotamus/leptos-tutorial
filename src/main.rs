@@ -1,55 +1,84 @@
 use leptos::prelude::*;
-use leptos_router::components::{Router, Route, Routes, ParentRoute, Outlet};
+use leptos_router::components::{Router, Route, Routes, ParentRoute, Outlet, A};
+use leptos_router::hooks::use_params_map;
 use leptos_router::path;
-
-#[component]
-fn Home() -> impl IntoView {
-    view! {
-        <h1>Home</h1>
-    }
-}
-
-#[component]
-fn Users() -> impl IntoView {
-    view! {
-        <h1>Users</h1>
-        <Outlet />
-    }
-}
-
-#[component]
-fn UserProfile() -> impl IntoView {
-    view! {
-        <h1>User Profile</h1>
-    }
-}
-
-#[component]
-fn NoUser() -> impl IntoView {
-    view! {
-        <h1>No User</h1>
-    }
-}
 
 #[component]
 fn App() -> impl IntoView {
     view! {
         <Router>
+            <h1>Contact App</h1>
             <nav>
-                <a href="/">Home</a>
-                <a href="/users">Users</a>
+                <a href="/">"Home"</a>
+                <a href="/contacts">"Contacts"</a>
             </nav>
             <main>
-                <Routes fallback=|| "Not found fallback.">
-                    <Route path=path!("/") view=Home />
-                    <ParentRoute path=path!("/users") view=Users>
-                        <Route path=path!(":id") view=UserProfile />
-                        <Route path=path!("") view=NoUser />
+                <Routes fallback=|| "Not found.">
+                    <Route path=path!("/") view=|| view! {  
+                        <h3>"Home"</h3>
+                    } />
+                    <ParentRoute 
+                        path=path!("/contacts") 
+                        view=ContactList
+                    >
+                        // if no id specified, fall back
+                        <ParentRoute path=path!(":id") view=ContactInfo>
+                            <Route path=path!("") view=|| view! {
+                                <div class="tab">
+                                    "(Contact Info)"
+                                </div>
+                            } />
+                            <Route path=path!("conversations") view=|| view! {
+                                <div class="tab">
+                                    "(Conversations)"
+                                </div>
+                            } />
+                        </ParentRoute>
+                        // if no id specified, fall back
+                        <Route path=path!("") view=|| view! {
+                            <div class="select-user">
+                                "Select a user to view contact info."
+                            </div>
+                        } />                        
                     </ParentRoute>
-                    <Route path=path!("/*any") view=|| view! { <h1>Not found</h1> } />
                 </Routes>
             </main>
         </Router>
+    }
+}
+
+#[component]
+fn ContactList() -> impl IntoView {
+    view! {
+        <h3>"Contacts"</h3>
+        <div class="contact-list-contacts">
+            <A href="alice">"Alice"</A>
+            <A href="bob">"Bob"</A>
+            <A href="steve">"Steve"</A>
+        </div>
+        <Outlet/>
+    }
+}
+
+#[component]
+fn ContactInfo() -> impl IntoView {
+    let params = use_params_map();
+    let id = move || params.read().get("id").unwrap_or_default();
+
+    let name = move || match id().as_str() {
+        "alice" => "Alice",
+        "bob" => "Bob",
+        "steve" => "Steve",
+        _ => "User not found",
+    };
+
+    view! {
+        <h4>{name}</h4>
+        <div class="contact-info">
+            <A href="" exact=true>"Contact Info"</A>
+            <A href="conversations">"Conversations"</A>
+        </div>
+        <Outlet />
     }
 }
 
