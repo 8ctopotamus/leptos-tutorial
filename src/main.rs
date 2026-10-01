@@ -1,84 +1,94 @@
 use leptos::prelude::*;
-use leptos_router::components::{Router, Route, Routes, ParentRoute, Outlet, A};
-use leptos_router::hooks::use_params_map;
+use leptos_router::components::{Form, Route, Router, Routes};
+use leptos_router::hooks::{use_params_map, use_query_map};
 use leptos_router::path;
 
 #[component]
 fn App() -> impl IntoView {
     view! {
         <Router>
-            <h1>Contact App</h1>
-            <nav>
-                <a href="/">"Home"</a>
-                <a href="/contacts">"Contacts"</a>
-            </nav>
+            <h1><code>"<Form />"</code></h1>
             <main>
                 <Routes fallback=|| "Not found.">
-                    <Route path=path!("/") view=|| view! {  
-                        <h3>"Home"</h3>
-                    } />
-                    <ParentRoute 
-                        path=path!("/contacts") 
-                        view=ContactList
-                    >
-                        // if no id specified, fall back
-                        <ParentRoute path=path!(":id") view=ContactInfo>
-                            <Route path=path!("") view=|| view! {
-                                <div class="tab">
-                                    "(Contact Info)"
-                                </div>
-                            } />
-                            <Route path=path!("conversations") view=|| view! {
-                                <div class="tab">
-                                    "(Conversations)"
-                                </div>
-                            } />
-                        </ParentRoute>
-                        // if no id specified, fall back
-                        <Route path=path!("") view=|| view! {
-                            <div class="select-user">
-                                "Select a user to view contact info."
-                            </div>
-                        } />                        
-                    </ParentRoute>
+                    <Route path=path!("") view=FormExample />
                 </Routes>
             </main>
+            <footer>"Some footer info..."</footer>
         </Router>
     }
 }
 
 #[component]
-fn ContactList() -> impl IntoView {
-    view! {
-        <h3>"Contacts"</h3>
-        <div class="contact-list-contacts">
-            <A href="alice">"Alice"</A>
-            <A href="bob">"Bob"</A>
-            <A href="steve">"Steve"</A>
-        </div>
-        <Outlet/>
-    }
-}
-
-#[component]
-fn ContactInfo() -> impl IntoView {
-    let params = use_params_map();
-    let id = move || params.read().get("id").unwrap_or_default();
-
-    let name = move || match id().as_str() {
-        "alice" => "Alice",
-        "bob" => "Bob",
-        "steve" => "Steve",
-        _ => "User not found",
-    };
+fn FormExample() -> impl IntoView {
+    let query = use_query_map();
+    let name = move || query.read().get("name").unwrap_or_default();
+    let number = move || query.read().get("number").unwrap_or_default();
+    let select = move || query.read().get("select").unwrap_or_default();
 
     view! {
-        <h4>{name}</h4>
-        <div class="contact-info">
-            <A href="" exact=true>"Contact Info"</A>
-            <A href="conversations">"Conversations"</A>
-        </div>
-        <Outlet />
+        <table>
+            <tr>
+                <td><code>"name"</code></td>
+                <td>{name}</td>
+            </tr>
+            <tr>
+                <td><code>"number"</code></td>
+                <td>{number}</td>
+            </tr>
+            <tr>
+                <td><code>"select"</code></td>
+                <td>{select}</td>
+            </tr>
+        </table>
+        <h2>"Manual Submission"</h2>
+        <Form method="GET" action="">
+            <input type="text" name="name" value=name />
+            <input type="number" name="number" value=number />
+            <select name="select">
+                <option selected=move || select() == "A">
+                    "A"
+                </option>
+                <option selected=move || select() == "B">
+                    "B"
+                </option>
+                <option selected=move || select() == "C">
+                    "C"
+                </option>
+            </select>
+            <input type="submit" /> // submitting causes a client-side navigation, not a full reload.
+        </Form>
+
+        <h2>"Automatic Submission"</h2>
+        <Form method="GET" action="">
+            <input
+                type="text"
+                name="name"
+                value=name 
+                oninput="this.form.requestSubmit()"
+            />
+            <input
+                type="number"
+                name="number"
+                value=number
+                oninput="this.form.requestSubmit()"
+            />
+            <select 
+                name="select" 
+                onchange="this.form.requestSubmit()"
+            >
+                <option selected=move || select() == "A">
+                    "A"
+                </option>
+                <option selected=move || select() == "B">
+                    "B"
+                </option>
+                <option selected=move || select() == "C">
+                    "C"
+                </option>
+            </select>
+            <input type="submit" /> // submitting causes a client-side navigation, not a full reload.
+        </Form>
+
     }
 }
 
